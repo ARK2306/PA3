@@ -1,0 +1,18 @@
+---
+# K8s firewall rules
+- name: Open K8s required ports
+  firewalld:
+    port: "{{ item }}"
+    permanent: yes
+    state: enabled
+  loop:
+    - 6443/tcp # Kubernetes API server
+    - 2379-2380/tcp # etcd server client API
+    - 10250/tcp # Kubelet API
+    - 10259/tcp # kube-scheduler
+    - 10257/tcp # kube-controller-manager
+    - 5000/tcp # Docker registry
+    - 30000-32767/tcp # NodePort Services
+
+- name: Reload firewall
+  command: firewall-cmd --reload

@@ -1,0 +1,74 @@
+---
+# tasks/playbook_setup_registry.yaml
+
+# Ensure Docker is properly initialized
+- name: Ensure Docker service is running
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+# Reset Docker networking (to fix iptables issues)
+- name: Reset Docker networking
+  shell: |
+    systemctl stop docker
+    iptables -F
+    iptables -X
+    iptables -t nat -F
+    iptables -t nat -X
+    systemctl start docker
+  ignore_errors: yes
+
+# Wait for Docker to be ready
+- name: Wait for Docker to be ready
+  wait_for:
+    timeout: 10
+
+- name: Create registry storage directory
+  file:
+    path: /opt/registry/data
+    state: directory
+    mode: "0755"
+
+- name: Create registry auth directory
+  file:
+    path: /opt/registry/auth
+    state: directory
+    mode: "0755"
+
+- name: Create registry certificates directory
+  file:
+    path: /opt/registry/certs
+    state: directory
+    mode: "0755"
+
+- name: Generate SSL certificate for registry
+  command: openssl req -x509 -nodes -days 365 -newkey rsa:2048
+    -keyout /opt/registry/certs/registry.key
+    -out /opt/registry/certs/registry.crt
+    -subj "/CN={{ ansible_host }}"
+
+- name: Create Docker Registry container
+  docker_container:
+    name: registry
+    image: registry:2
+    state: started
+    restart_policy: always
+    ports:
+      - "5000:5000"
+    volumes:
+      - /opt/registry/data:/var/lib/registry
+      - /opt/registry/certs:/certs
+    env:
+      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/registry.crt
+      REGISTRY_HTTP_TLS_KEY: /certs/registry.key
+
+- name: Copy registry certificate to trusted CA directory
+  copy:
+    src: /opt/registry/certs/registry.crt
+    dest: /usr/local/share/ca-certificates/registry.crt
+    remote_src: yes
+
+- name: Update CA certificates
+  command: update-ca-certificates

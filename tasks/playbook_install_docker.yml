@@ -1,0 +1,49 @@
+---
+- name: Ensure Docker is installed
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Ensure Docker service is running
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Ensure user is in docker group
+  user:
+    name: cc
+    groups: docker
+    append: yes
+
+- name: Reset SSH connection to allow user changes to affect 'current login user'
+  meta: reset_connection
+
+- name: Test Docker installation
+  command: docker run hello-world
+  register: docker_test
+  changed_when: false
+
+- name: Display Docker test result
+  debug:
+    var: docker_test.stdout_lines
+
+- name: Install Docker Compose
+  get_url:
+    url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}
+    dest: /usr/local/bin/docker-compose
+    mode: "0755"
+
+- name: Test Docker Compose installation
+  command: docker-compose --version
+  register: compose_test
+  changed_when: false
+
+- name: Display Docker Compose version
+  debug:
+    var: compose_test.stdout

@@ -1,0 +1,19 @@
+---
+- name: Verify OpenStack environment
+  debug:
+    msg: "Creating VM with image: {{ default_image }}, flavor: {{ default_flavor }}, network: {{ default_network }}"
+
+- name: Create VMs in Chameleon Cloud
+  openstack.cloud.server:
+    state: present
+    auth: "{{ os_auth }}"
+    name: "{{ item.name }}"
+    image: "{{ default_image }}"
+    flavor: "{{ default_flavor }}"
+    network: "{{ default_network }}"
+    key_name: "{{ ssh_key_name }}"
+    auto_ip: no
+    wait: yes
+    timeout: 600
+  loop: "{{ vms_to_create }}"
+  register: created_vms

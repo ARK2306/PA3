@@ -1,0 +1,23 @@
+---
+- name: Download Kafka
+  get_url:
+    url: "https://downloads.apache.org/kafka/3.8.0/kafka_2.13-3.8.0.tgz"
+    dest: "/Users/aryanreddy/Desktop/PA3/kafka_2.13-3.8.0.tgz"
+    mode: "0644"
+    force: yes
+  register: kafka_download
+
+- name: Display download result
+  debug:
+    var: kafka_download
+    verbosity: 1
+
+# Add error handling
+- name: Verify download
+  stat:
+    path: "/Users/aryanreddy/Desktop/PA3/kafka_2.13-3.8.0.tgz"
+  register: kafka_file
+
+- name: Show download status
+  debug:
+    msg: "Kafka download {{ 'successful' if kafka_file.stat.exists else 'failed' }}"

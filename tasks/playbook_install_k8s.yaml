@@ -1,0 +1,36 @@
+---
+# Install required packages
+- name: Install prerequisites
+  shell: |
+    sudo apt-get update
+    sudo apt-get install -y apt-transport-https ca-certificates curl
+
+# Download the Google Cloud public signing key
+- name: Download K8s signing key
+  shell: |
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+# Add the Kubernetes apt repository
+- name: Add K8s repository
+  shell: |
+    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+# Install kubelet, kubeadm and kubectl
+- name: Install K8s packages
+  shell: |
+    sudo apt-get update
+    sudo apt-get install -y kubelet kubeadm kubectl
+    sudo apt-mark hold kubelet kubeadm kubectl
+
+# Install pip packages
+- name: Install Python packages
+  shell: |
+    sudo apt-get install -y python3-pip
+    sudo pip3 install kubernetes openshift
+
+# Disable swap and restart containerd
+- name: Disable swap
+  command: sudo swapoff -a
+
+- name: Restart containerd
+  shell: sudo systemctl restart containerd

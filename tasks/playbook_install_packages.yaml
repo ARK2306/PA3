@@ -1,0 +1,78 @@
+---
+- name: Gather facts
+  setup:
+  when: ansible_os_family is not defined
+
+- name: Update package cache (Ubuntu/Debian)
+  apt:
+    update_cache: yes
+  when: ansible_os_family == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Install apt packages (Ubuntu/Debian)
+  apt:
+    name:
+      - python3-pip
+      - python3-dev
+      - build-essential
+      - libssl-dev
+      - libffi-dev
+      - python3-setuptools
+      - git
+    state: present
+  when: ansible_os_family == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Install pip packages
+  pip:
+    name:
+      - docker
+      - docker-compose
+      - kafka-python
+    state: present
+  become: yes
+  become_user: cc
+
+- name: Install Docker prerequisites (Ubuntu/Debian)
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+    state: present
+  when: ansible_os_family == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Add Docker GPG key (Ubuntu/Debian)
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  when: ansible_os_family == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Add Docker repository (Ubuntu/Debian)
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+  when: ansible_os_family == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Install Docker (Ubuntu/Debian)
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian" or ansible_distribution == "Ubuntu"
+
+- name: Add user to docker group
+  user:
+    name: cc
+    groups: docker
+    append: yes
+
+- name: Restart Docker service (Ubuntu/Debian)
+  systemd:
+    name: docker
+    state: restarted
+    daemon_reload: yes
+  when: ansible_os_family == "Debian" or ansible_distribution == "Ubuntu"

@@ -1,0 +1,20 @@
+---
+- name: Check if required variables are defined
+  assert:
+    that:
+      - default_image is defined
+      - default_flavor is defined
+      - default_network is defined
+      - ssh_key_name is defined
+      - vms_to_create is defined
+    fail_msg: "One or more required variables are not defined. Please check your variables.yaml file."
+
+- name: Ensure OpenStack auth information is provided
+  ansible.builtin.assert:
+    that:
+      - os_auth is defined
+      - os_auth.auth_url is defined
+      - os_auth.username is defined
+      - os_auth.password is defined
+      - os_auth.project_name is defined
+    fail_msg: "OpenStack authentication information is missing. Please ensure your OpenStack RC file is sourced."

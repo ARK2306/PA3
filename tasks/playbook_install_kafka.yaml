@@ -1,0 +1,30 @@
+---
+- name: Copy Kafka tar to VMs
+  copy:
+    src: "{{ playbook_dir }}/kafka_2.13-3.8.0.tgz"
+    dest: "/home/{{ cloud_user }}/"
+    mode: "0644"
+
+- name: Extract Kafka
+  unarchive:
+    src: "/home/{{ cloud_user }}/kafka_2.13-3.8.0.tgz"
+    dest: "/home/{{ cloud_user }}/"
+    remote_src: yes
+    creates: "/home/{{ cloud_user }}/kafka_2.13-3.8.0"
+
+- name: Set KAFKA_HOME environment variable
+  lineinfile:
+    path: "/home/{{ cloud_user }}/.bashrc"
+    line: "export KAFKA_HOME=/home/{{ cloud_user }}/kafka_2.13-3.8.0"
+    state: present
+
+- name: Add Kafka bin to PATH
+  lineinfile:
+    path: "/home/{{ cloud_user }}/.bashrc"
+    line: "export PATH=$PATH:$KAFKA_HOME/bin"
+    state: present
+
+- name: Source .bashrc
+  shell: source /home/{{ cloud_user }}/.bashrc
+  args:
+    executable: /bin/bash

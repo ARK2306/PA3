@@ -1,0 +1,30 @@
+---
+# Ensure firewalld is installed and running
+- name: Ensure firewalld is installed
+  apt:
+    name: firewalld
+    state: present
+    update_cache: yes
+
+- name: Ensure firewalld is running and enabled
+  systemd:
+    name: firewalld
+    state: started
+    enabled: yes
+
+# For complete disable (recommended for initial setup)
+- name: Stop and disable firewalld
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+- name: Check firewalld status
+  command: systemctl status firewalld
+  register: firewall_status
+  changed_when: false
+  ignore_errors: yes
+
+- name: Display firewall status
+  debug:
+    var: firewall_status.stdout_lines

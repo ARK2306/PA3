@@ -1,0 +1,13 @@
+---
+- name: Gather facts from VMs
+  ansible.builtin.setup:
+
+- name: Display basic VM information
+  ansible.builtin.debug:
+    msg: "VM {{ inventory_hostname }} - IP: {{ ansible_host }}, OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+- name: Save VM facts to a file
+  ansible.builtin.copy:
+    content: "{{ ansible_facts | to_nice_yaml }}"
+    dest: "./vm_facts_{{ inventory_hostname }}.yaml"
+  delegate_to: localhost
