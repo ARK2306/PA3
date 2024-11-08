@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: update-db-job
+  namespace: kafka
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 4
+  template:
+    spec:
+      containers:
+      - name: update-db
+        image: 192.168.5.107:5000/update-db:latest
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-service.kafka.svc.cluster.local:9092"  # Use the Kafka service name
+        - name: KAFKA_TOPIC
+          value: "inference_result"
+        - name: DB_NAME
+          value: "team21_data"
+        - name: DB_USER
+          value: "team21user"
+        - name: DB_PASSWORD
+          value: "team21"
+        - name: DB_HOST
+          value: "postgres-service"  # Use the PostgreSQL service name
+      restartPolicy: Never

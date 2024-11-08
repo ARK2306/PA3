@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-service-job
+  namespace: kafka
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 4
+  template:
+    spec:
+      nodeName: team21-vm3
+      containers:
+      - name: db-service
+        image: 192.168.5.107:5000/db-service:latest
+        imagePullPolicy: Always
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-service.kafka.svc.cluster.local:9092"
+        - name: KAFKA_TOPIC
+          value: "team21"
+        - name: INFERENCE_TOPIC
+          value: "inference_result"
+        - name: POSTGRES_HOST
+          value: "postgres-service"
+        - name: POSTGRES_DB
+          value: "team21_data"
+        - name: POSTGRES_USER
+          value: "team21user"
+        - name: POSTGRES_PASSWORD
+          value: "team21"
+      restartPolicy: Never
