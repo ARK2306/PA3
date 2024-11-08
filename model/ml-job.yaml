@@ -1,0 +1,22 @@
+   apiVersion: batch/v1
+   kind: Job
+   metadata:
+     name: kafka-ml-job
+     namespace: kafka
+   spec:
+     completions: 1
+     parallelism: 1
+     backoffLimit: 4
+     template:
+       spec:
+         containers:
+         - name: kafka-ml-service
+           image: 192.168.5.107:5000/kafka-ml-service:latest
+           env:
+           - name: KAFKA_BROKER
+             value: "kafka-service.kafka.svc.cluster.local:9092"
+           - name: KAFKA_TOPIC
+             value: "team21"
+           - name: INFERENCE_RESULT_TOPIC
+             value: "inference_result"
+         restartPolicy: Never
